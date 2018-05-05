@@ -1,127 +1,106 @@
-#include<iostream>
-#include<vector>
-#include<algorithm>
-#include<unordered_map>
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
 
 using namespace std;
 
-class solution {
-private:
-	vector<string> perm;
-	unordered_map<char, long> res;
-	string s;
-	long n;
-	long total_res;
-	vector<long> util;
+class game{
+private:	
+	int agents; // total no.of agents
+	string ids; // sequence of agents
+	unordered_map<char, int> res; // resources with each agent
+	vector<string> perm; // permutations of all the coalitions
+	vector<int> util; // final utilities for each agent
+	long total_resources = 0;
 
-public:
+	static void generate_agents() {
+		for (int i = 0; i < n; ++i) {
+			ids = ids + (char) (97 + i);
+		}
+	}
 	
-	solution(long num) {
-		n = num;
-		perm.reserve(n);
-		util.reserve(n);
-		sequence();
+	static void get_resources() {
+		cout << "Enter the resources with each agent" << endl;
+		for (int i = 0; i < agents; ++i) {
+			int resource;
+			cin >> resource; // gets the resources for an agent
+			res[ids[i]] = resource; // maps agent with their resources
+			total_resources += resource; // update the total resources
+		}	
 	}
 
-	long calc_fact(long n) {
-		/*
-		Calculates the factorial of a number
-		*/
+	static long long calculate_factorial(unsigned int n) {
 		if (n == 0) return 1;
-		long ans = 1;
-		for (long i = 1; i <= n; ++i) {
-			ans = ans * i;
-		}
-		return ans;
+		return calculate_factorial(n) * calculate_factorial(n - 1);
 	}
 
-	void sequence() {
-		/*
-		Generates string sequence for all the n agents.
-		*/
-		int r;
-		for (long i = 0; i < n; ++i) {
-			cin >> r;
-			total_res += r;
-			char c = (char) (97 + i);
-			res[c] = r;
-			s += c;
-		}
+	static void permute() {
+		string sequence = ids;
+		backtrack(sequence.begin(), 0, sequence.length() - 1);
 	}
 
-	void permute() {
-		backtrack(s.begin(), 0, s.length() - 1);
-	}
-
-	void backtrack(string::iterator it, long l, long r) {
+	static void backtrack(string::iterator it, int l, int r) {
 		if (l == r) {
 			perm.push_back(s);
 		}
 		else {
-			for(long i = l; i <= r; ++i) {
+			for(int i = l; i <= r; ++i) {
 				swap(*(it+l), *(it+i));
 				backtrack(it, l+1, r);
 				swap(*(it+l), *(it+i));
 			}
 		}
 	}
-	
-	bool is_greater(long a) {
-		return ((a/total_res)*100 > 50) ? true : false;
+
+	static bool is_greater(int a) {
+		return ((a / total) * 100 > 50) ? true : false;
 	}
 
-	long shapely(string s, char c) {
-		long util = 0;
-		long set = 0;
-		long set_without_agent = 0;
-		long set_with_agent = 0;
-		for(long i = 0; i < s.length(); ++i) {
-			if (s[i] == c) {
-				set_with_agent = set_without_agent + res[c];
-				if (is_greater(set_without_agent)) {
-					return calc_fact(set) * calc_fact(n - set - 1) * (100 - 100);
-				}
-				else {
-					if (is_greater(set_with_agent)) {
-						return calc_fact(set) * calc_fact(n - set - 1) * (0 - 100);
-					}
-					else return calc_fact(set) * calc_fact(n - set - 1) * (0 - 0);
-				}
-			}
-			else {
-				set_without_agent += res[s[i]];
-				++set;
-			}
+	static bool check_flag() {
+		//length of sequence should be 26
+		if (ids.length() != agents) {
+			cout << endl << "Error generating ids.." << endl;
+			return false;
 		}
-		cout <<"Error in calculating the shapely's value.. Exiting the program." << endl;
-		exit(0);
-		return -1;
+		if (perm.size() != calculate_factorial(agents)) {
+			cout << endl << "Error generating permutations.." << endl;
+			return false;
+		}
+
 	}
 
-	vector<long> calc_util() {
-		for(long j = 0; j < n; ++j) {
-			for(long i = 0; i < perm.size(); ++i) {
-				util[j] += shapely(perm[i], (char)(97 + j));
-			}
-			util[j] /= calc_fact(n);
+public:
+	game(int num_agents) {
+		agents = num_agents;
+		util.reserve(agents);
+		generate_agents();
+		get_resources();
+		permute();
+		if(!check_flag()) {
+			cout << "Checks not passed. Exiting the game." << endl;
+			cout << endl << "Bye!" << endl;
+			exit(0);
+		} else {
+			cout << "All checks passed. OK." << endl;
 		}
-		return util;
 	}
+
+
 
 };
 
 int main() {
-
-	long n, r;
+	cout << "Welcome to Resource Distribution Game!" << endl;
+	cout << "Enter the number of agents: ";
+	unsigned int n;
 	cin >> n;
-	solution *obj = new solution(n);
-	obj->permute();
-	//Now the perm vector should contain all the permutaions of the sequence.
-	// vector<long> util = obj->calc_util();
-	// cout << "The final utilities for the agents are as follows: " << endl;
-	// for(long i = 0; i < n; i++) {
-	// 	cout << "Agent " << (char) (97 + i) << ": " << util[i] << endl;
-	// }
+	if (n < 2) {
+		cout << "At least 2 agents are required to play the game.." << endl;
+		cout << endl << "Bye!";
+		return 0;
+	}
+	game *g = new game(n);
+	cout << endl << "Bye!";
 	return 0;
-
 }
