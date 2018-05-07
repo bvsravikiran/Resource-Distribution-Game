@@ -1,106 +1,111 @@
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <algorithm>
+#include<iostream>
+#include<vector>
+#include<array>
+#include<algorithm>
+#include<unordered_map>
 
 using namespace std;
 
-class game{
-private:	
-	int agents; // total no.of agents
-	string ids; // sequence of agents
-	unordered_map<char, int> res; // resources with each agent
-	vector<string> perm; // permutations of all the coalitions
-	vector<int> util; // final utilities for each agent
-	long total_resources = 0;
+class Game {
+private:
+	int agents;
+	vector<int> init;
+	vector<vector<int> > perm;
+	vector<int> res;
+	int total_res;
+	vector<int> util;
+	long fact;
+public:
+	Game(int n) {
+		agents = n;
+		init_();
+		get_resources();
+		cout << "Hello!" << endl;
+	}
 
-	static void generate_agents() {
-		for (int i = 0; i < n; ++i) {
-			ids = ids + (char) (97 + i);
+	void get_resources() {
+		res.reserve(agents+1);
+		res[0] = 0;
+		for(int i = 1; i <= agents; ++i) {
+			cin >> res[i];
+			total_res += res[i];
 		}
 	}
-	
-	static void get_resources() {
-		cout << "Enter the resources with each agent" << endl;
+
+	void init_() {
 		for (int i = 0; i < agents; ++i) {
-			int resource;
-			cin >> resource; // gets the resources for an agent
-			res[ids[i]] = resource; // maps agent with their resources
-			total_resources += resource; // update the total resources
-		}	
-	}
-
-	static long long calculate_factorial(unsigned int n) {
-		if (n == 0) return 1;
-		return calculate_factorial(n) * calculate_factorial(n - 1);
-	}
-
-	static void permute() {
-		string sequence = ids;
-		backtrack(sequence.begin(), 0, sequence.length() - 1);
-	}
-
-	static void backtrack(string::iterator it, int l, int r) {
-		if (l == r) {
-			perm.push_back(s);
+			init.push_back(i+1);
 		}
-		else {
-			for(int i = l; i <= r; ++i) {
-				swap(*(it+l), *(it+i));
-				backtrack(it, l+1, r);
-				swap(*(it+l), *(it+i));
+		permute();
+	}
+
+	void permute() {
+		sort(init.begin(), init.end());
+		do {
+			perm.push_back(init);
+		} while(next_permutation(init.begin(), init.end()));
+	}
+
+	unsigned long factorial(unsigned int n) {
+		if (n == 0) return 1;
+		return n * factorial(n-1);
+	}
+
+	bool is_greater(int n) {
+		return ((n/total_res)*100 > 50) ? true : false;
+	}
+
+	void util_() {
+		fact = factorial(agents);
+		//cout << "util_ function called" << endl;
+		util.reserve(agents);
+		for(int i = 0; i < 1; ++i) {
+			//util[i] = shapley(i+1);
+			cout << shapley(i+1) << endl;
+		}
+		cout << "Success!" << endl;
+	}
+
+	double shapley(int n) {
+		//cout << "shapley function called for agent " << n << endl;
+		int sum = 0;
+		double value = 0;
+		int counter = 0;
+		for (int i = 0; i < perm.size(); ++i) {
+			cout << "For permutation ";
+			for (int k = 0; k < perm[i].size(); ++k) {
+				cout << perm[i][k] << " ";
+			}
+			cout << endl;
+			for(int j = 0; j < perm[i].size(); ++j) {
+				if (perm[i][j] == n) {
+					if (!is_greater(sum)) {
+						if (is_greater(sum + res[n])) {
+							cout << counter << "! " << agents - counter - 1 << "! " << "(100 - 0)";
+							double temp = (factorial(counter) * factorial(agents - counter - 1) * 100);
+							cout << temp << endl;
+							value += temp;
+						}
+					}
+					sum = 0;
+					counter = 0;
+					break;
+				} else {
+					//cout << "agent " << n << " not yet encountered" << endl;
+					sum += res[perm[i][j]];
+					//cout << "Sum: " << sum;
+					counter++;
+				}
 			}
 		}
+		return value /factorial(fact);
 	}
-
-	static bool is_greater(int a) {
-		return ((a / total) * 100 > 50) ? true : false;
-	}
-
-	static bool check_flag() {
-		//length of sequence should be 26
-		if (ids.length() != agents) {
-			cout << endl << "Error generating ids.." << endl;
-			return false;
-		}
-		if (perm.size() != calculate_factorial(agents)) {
-			cout << endl << "Error generating permutations.." << endl;
-			return false;
-		}
-
-	}
-
-public:
-	game(int num_agents) {
-		agents = num_agents;
-		util.reserve(agents);
-		generate_agents();
-		get_resources();
-		permute();
-		if(!check_flag()) {
-			cout << "Checks not passed. Exiting the game." << endl;
-			cout << endl << "Bye!" << endl;
-			exit(0);
-		} else {
-			cout << "All checks passed. OK." << endl;
-		}
-	}
-
-
 
 };
-
 int main() {
-	cout << "Welcome to Resource Distribution Game!" << endl;
-	cout << "Enter the number of agents: ";
-	unsigned int n;
+	int n;
 	cin >> n;
-	if (n < 2) {
-		cout << "At least 2 agents are required to play the game.." << endl;
-		cout << endl << "Bye!";
-		return 0;
-	}
-	game *g = new game(n);
-	cout << endl << "Bye!";
+	Game *g = new Game(n);
+	g->util_();
 	return 0;
 }
