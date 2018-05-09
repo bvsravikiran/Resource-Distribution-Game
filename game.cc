@@ -51,21 +51,38 @@ public:
 	void util_() {
 		util.reserve(agents);
 		for(int i = 0; i < agents; ++i) {
-			cout << "utility for the agent " << i + 1 << " is " << shapley(i + 1) << endl;
+			cout << "utility for the agent " << i + 1 << " is " << endl << shapley(i + 1) << endl;
 		}
 	}
 
 	double shapley(int n) {
+		cout << "Entered the shapley function " << endl;
 		int sum = 0;
 		double value = 0;
 		int counter = 0;
+		vector<int> arr(agents, 0);
 		for (int i = 0; i < perm.size(); ++i) {
 			for(int j = 0; j < perm[i].size(); ++j) {
 				if (perm[i][j] == n) {
+
+					cout << endl << "The permutation is: ";
+					for(int k_i = 0; k_i < perm[i].size(); ++k_i) {
+						cout << perm[i][k_i] << " ";
+					}
+					cout << endl;
+
+					
+					cout << endl << "Agent joined at position " << j << endl;
 					if (!is_greater(sum)) {
+						cout << "The sum of coalitions excluding the agent is " << sum << " and it doesnot have the majority." << endl;
 						if (is_greater(sum + res[n])) {
+							cout << "But when the agent is included, the sum is " << sum << " and it has the majority." << endl;
 							double temp = (factorial(counter) * factorial(agents - counter - 1) * 100);
-							value += temp;
+							cout << "The value at this point is " << temp << endl;
+							// value += temp;
+							cout << "The arr[j] was " << arr[j] << endl;
+							arr[j] += temp;
+							cout << "The arr[j] was " << arr[j] << endl;
 						}
 					}
 					sum = 0;
@@ -75,6 +92,15 @@ public:
 					sum += res[perm[i][j]];
 					counter++;
 				}
+			}
+		}
+		for (int x = 0; x < arr.size(); ++x) {
+			if(arr[x] > 0) {
+				cout << "------------------------------------" << endl;
+				cout << endl << "The agent joined at " << x << " and the factorial is " << (agents - x - 1) << " and the sum of the payoffs for the agent at that position is " << arr[x] << endl;
+				arr[x] = arr[x] / factorial(agents - x - 1);
+				value += arr[x];
+				cout << "------------------------------------" << endl;
 			}
 		}
 		return value / factorial(agents);
